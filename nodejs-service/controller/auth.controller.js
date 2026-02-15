@@ -34,3 +34,38 @@ export const register = asyncHandler(async (req, res) => {
 
     res.status(201).json({ user, token })
 })
+
+export const login = asyncHandler(async (req, res) => {
+    const { email, password } = req.body
+
+    const user = await prisma.user.findUnique({ where: { email } })
+
+    if (!user) {
+        return res.status(404).json({ message: "User not found" })
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.password)
+
+    if (!isPasswordValid) {
+        return res.status(401).json({ message: "Invalid password" })
+    }
+
+    const token = generateToken(user.id)
+
+    res.status(200).json({ user, token })
+})
+
+export const logout = asyncHandler(async (req, res) => {
+
+    res.status(200).json({ message: "Logout successful" })
+})
+
+export const getProfile = asyncHandler(async (req, res) => {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } })
+
+    if (!user) {
+        return res.status(404).json({ message: "User not found" })
+    }
+
+    res.status(200).json({ user })
+})
