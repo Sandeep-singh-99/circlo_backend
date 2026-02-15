@@ -27,6 +27,7 @@ export const register = asyncHandler(async (req, res) => {
             email,
             password: hashedPassword,
             imageUrl: image.secure_url,
+            imageUrlID: image.public_id,
         }
     })
 
