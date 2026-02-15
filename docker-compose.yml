@@ -1,0 +1,14 @@
+version: "3.9"
+
+services:
+  node:
+    build: ./nodejs-service
+    container_name: nodejs-service
+    ports:
+      - "3000:3000"
+
+  fastapi:
+    build: ./fastapi-service
+    container_name: fastapi-service
+    ports:
+      - "8000:8000"
