@@ -1,11 +1,15 @@
 import jwt from "jsonwebtoken";
-import { prisma } from "../config/prisma.js";
+import prisma from "../config/prisma.js";
+import dotenv from "dotenv";
+dotenv.config();
 
 const protect = async (req, res, next) => {
   let token;
 
-  if (req.headers.authorization &&
-      req.headers.authorization.startsWith("Bearer")) {
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
     token = req.headers.authorization.split(" ")[1];
   }
 
@@ -26,4 +30,4 @@ const protect = async (req, res, next) => {
   }
 };
 
-module.exports = protect;
+export default protect;
