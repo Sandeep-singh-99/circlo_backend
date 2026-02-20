@@ -6,6 +6,7 @@ import cors from "cors";
 dotenv.config();
 
 import authRouter from "./router/auth.router.js";
+import postRouter from "./router/post.router.js";
 
 const app = express();
 const PORT = process.env.PORT || 4001;
@@ -16,6 +17,7 @@ app.use(morgan("dev"));
 app.use(cors());
 
 app.use("/api/auth", authRouter);
+app.use("/api/post", postRouter);
 
 app.listen(PORT, () => {
   console.log(`Server running on port http://localhost:${PORT}`);
