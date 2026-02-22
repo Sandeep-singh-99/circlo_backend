@@ -31,6 +31,7 @@ model Post {
   id         String  @id @default(uuid())
   content    String
   imageUrl   String?
+  imageUrlID String?
   videoUrl   String?
   videoUrlID String?
   userId     String

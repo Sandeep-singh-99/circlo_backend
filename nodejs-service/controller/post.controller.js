@@ -1,3 +1,4 @@
+import imagekit from "../config/imagekit.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const extractHashtags = (text) => {
@@ -17,11 +18,18 @@ export const createPost = asyncHandler(async (req, res) => {
   // 1️⃣ Extract hashtags
   const hashtags = extractHashtags(content);
 
+  const uploadResponse = await imagekit.upload({
+    file: req.file.buffer,
+    fileName: req.file.originalname,
+    folder: "/circlo/posts",
+  })
+
   // 2️⃣ Create post first
   const post = await prisma.post.create({
     data: {
       content,
-      imageUrl,
+      imageUrl: uploadResponse.url,
+      imageUrlID: uploadResponse.fileId,
       userId: req.user.id,
     },
   });
@@ -174,6 +182,11 @@ export const deletePost = asyncHandler(async (req, res) => {
 
   const post = await prisma.post.findUnique({
     where: { id },
+    include: {
+      hashtags: {
+        include: { hashtag: true },
+      },
+    },
   });
 
   if (!post) {
@@ -184,8 +197,33 @@ export const deletePost = asyncHandler(async (req, res) => {
     return res.status(403).json({ message: "Unauthorized" });
   }
 
-  await prisma.post.delete({
-    where: { id },
+  // Delete image from ImageKit
+  if (post.imageUrlID) {
+    await imagekit.deleteFile(post.imageUrlID);
+  }
+
+  await prisma.$transaction(async (tx) => {
+    // Delete hashtag associations
+    for (const { hashtag } of post.hashtags) {
+      await tx.postHashtag.delete({
+        where: {
+          postId_hashtagId: {
+            postId: id,
+            hashtagId: hashtag.id,
+          },
+        },
+      });
+
+      await tx.hashtag.update({
+        where: { id: hashtag.id },
+        data: { usageCount: { decrement: 1 } },
+      });
+    }
+
+    // Delete post
+    await tx.post.delete({
+      where: { id },
+    });
   });
 
   res.json({ message: "Post deleted successfully" });
