@@ -1,4 +1,5 @@
 import imagekit from "../config/imagekit.js";
+import prisma from "../config/prisma.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 const extractHashtags = (text) => {
