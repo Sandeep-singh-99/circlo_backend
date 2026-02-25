@@ -178,6 +178,28 @@ export const updatePost = asyncHandler(async (req, res) => {
   res.json({ message: "Post updated successfully" });
 });
 
+export const getOwnPosts = asyncHandler(async (req, res) => {
+  const userId = req.user.id;
+
+  if (!userId) {
+    return res.status(401).json({ message: "Unauthorized" });
+  }
+
+  const posts = await prisma.post.findMany({
+    where: { userId },
+    include: {
+      hashtags: {
+        include: {
+          hashtag: true,
+        },
+      },
+    },
+    orderBy: { createdAt: "desc" },
+  });
+
+  res.json({ posts });
+})
+
 export const deletePost = asyncHandler(async (req, res) => {
   const { id } = req.params;
 
