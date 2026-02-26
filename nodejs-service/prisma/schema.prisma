@@ -25,6 +25,11 @@ model User {
   updatedAt  DateTime @updatedAt
 
   posts Post[]
+  comments Comment[]
+  likes Like[]
+  bookmarks Bookmark[]
+  followers Follow[] @relation("Following")
+  following Follow[] @relation("Follower")
 }
 
 model Post {
@@ -38,6 +43,10 @@ model Post {
   user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   hashtags PostHashtag[]
+
+  likes    Like[]
+  comments Comment[]
+  bookmarks Bookmark[]
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -64,4 +73,61 @@ model PostHashtag {
 
   @@id([postId, hashtagId])
   @@index([hashtagId])
+}
+
+model Comment {
+  id         String  @id @default(uuid())
+  content    String
+  userId     String
+  postId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post       Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+  @@index([postId])
+}
+
+model Like {
+  id         String  @id @default(uuid())
+  userId     String
+  postId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post       Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([postId])
+  @@unique([userId, postId])
+}
+
+model Follow {
+  id         String  @id @default(uuid())
+  followerId String
+  followingId String
+  follower   User    @relation("Follower", fields: [followerId], references: [id], onDelete: Cascade)
+  following  User    @relation("Following", fields: [followingId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([followerId])
+  @@index([followingId])
+  @@unique([followerId, followingId])
+}
+
+model Bookmark {
+  id         String  @id @default(uuid())
+  userId     String
+  postId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post       Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([postId])
+  @@unique([userId, postId])
 }
