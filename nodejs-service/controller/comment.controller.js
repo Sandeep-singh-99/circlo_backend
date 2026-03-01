@@ -115,3 +115,13 @@ export const updateComment = asyncHandler(async (req, res) => {
         updatedComment
     });
 });
+
+export const getTotalComments = asyncHandler(async (req, res) => {
+    const { id: postId } = req.params;
+
+    const totalComments = await prisma.comment.count({
+        where: { postId }
+    });
+
+    res.json({ total: totalComments });
+});
