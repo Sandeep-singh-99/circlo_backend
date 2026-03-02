@@ -55,32 +55,82 @@ export const createPost = asyncHandler(async (req, res) => {
 });
 
 export const getAllPosts = asyncHandler(async (req, res) => {
+  const userId = req.user?.id;
+
   const posts = await prisma.post.findMany({
     include: {
       user: true,
       hashtags: {
-        include: {
-          hashtag: true,
+        include: { hashtag: true },
+      },
+      _count: {
+        select: {
+          likes: true,
+          comments: true,
+          bookmarks: true,
         },
+      },
+      likes: {
+        where: { userId },
+        select: { id: true },
+      },
+      bookmarks: {
+        where: { userId },
+        select: { id: true },
       },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  res.json({ posts });
+  const formattedPosts = posts.map((post) => ({
+    id: post.id,
+    content: post.content,
+    imageUrl: post.imageUrl,
+    user: post.user,
+    hashtags: post.hashtags,
+
+    likesCount: post._count.likes,
+    commentsCount: post._count.comments,
+    bookmarksCount: post._count.bookmarks,
+
+    isLiked: post.likes.length > 0,
+    isBookmarked: post.bookmarks.length > 0,
+
+    createdAt: post.createdAt,
+  }));
+
+  res.json({ posts: formattedPosts });
 });
 
 export const getPostById = asyncHandler(async (req, res) => {
   const { id } = req.params;
+  const userId = req.user?.id;
 
   const post = await prisma.post.findUnique({
     where: { id },
     include: {
       user: true,
       hashtags: {
-        include: {
-          hashtag: true,
+        include: { hashtag: true },
+      },
+      comments: {
+        include: { user: true },
+        orderBy: { createdAt: "desc" },
+      },
+      _count: {
+        select: {
+          likes: true,
+          comments: true,
+          bookmarks: true,
         },
+      },
+      likes: {
+        where: { userId },
+        select: { id: true },
+      },
+      bookmarks: {
+        where: { userId },
+        select: { id: true },
       },
     },
   });
@@ -89,7 +139,25 @@ export const getPostById = asyncHandler(async (req, res) => {
     return res.status(404).json({ message: "Post not found" });
   }
 
-  res.json({ post });
+  const formattedPost = {
+    id: post.id,
+    content: post.content,
+    imageUrl: post.imageUrl,
+    user: post.user,
+    hashtags: post.hashtags,
+    comments: post.comments,
+
+    likesCount: post._count.likes,
+    commentsCount: post._count.comments,
+    bookmarksCount: post._count.bookmarks,
+
+    isLiked: post.likes.length > 0,
+    isBookmarked: post.bookmarks.length > 0,
+
+    createdAt: post.createdAt,
+  };
+
+  res.json({ post: formattedPost });
 });
 
 export const updatePost = asyncHandler(async (req, res) => {
@@ -179,7 +247,7 @@ export const updatePost = asyncHandler(async (req, res) => {
 });
 
 export const getOwnPosts = asyncHandler(async (req, res) => {
-  const userId = req.user.id;
+  const userId = req.user?.id;
 
   if (!userId) {
     return res.status(401).json({ message: "Unauthorized" });
@@ -188,17 +256,58 @@ export const getOwnPosts = asyncHandler(async (req, res) => {
   const posts = await prisma.post.findMany({
     where: { userId },
     include: {
+      user: true,
       hashtags: {
         include: {
           hashtag: true,
         },
       },
+      _count: {
+        select: {
+          likes: true,
+          comments: true,
+          bookmarks: true,
+        },
+      },
+      likes: {
+        where: { userId },
+        select: { id: true },
+      },
+      bookmarks: {
+        where: { userId },
+        select: { id: true },
+      },
     },
     orderBy: { createdAt: "desc" },
   });
 
-  res.json({ posts });
-})
+  // If no posts found, return empty array instead of 404
+  if (!posts.length) {
+    return res.json({ posts: [] });
+  }
+
+  const formattedPosts = posts.map((post) => ({
+    id: post.id,
+    content: post.content,
+    imageUrl: post.imageUrl,
+    videoUrl: post.videoUrl,
+
+    user: post.user,
+    hashtags: post.hashtags,
+
+    likesCount: post._count.likes,
+    commentsCount: post._count.comments,
+    bookmarksCount: post._count.bookmarks,
+
+    isLiked: post.likes.length > 0,
+    isBookmarked: post.bookmarks.length > 0,
+
+    createdAt: post.createdAt,
+    updatedAt: post.updatedAt,
+  }));
+
+  res.json({ posts: formattedPosts });
+});
 
 export const deletePost = asyncHandler(async (req, res) => {
   const { id } = req.params;
