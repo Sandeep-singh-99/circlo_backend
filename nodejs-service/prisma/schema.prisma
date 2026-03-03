@@ -26,11 +26,26 @@ model User {
 
   posts Post[]
   comments Comment[]
-  likes Like[]
+  likes Like[]  
   bookmarks Bookmark[]
+  rePosts RePost[]
   bio Bio?
   followers Follow[] @relation("Following")
   following Follow[] @relation("Follower")
+}
+
+model RePost {
+  id         String  @id @default(uuid())
+  userId     String
+  postId     String
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post       Post    @relation(fields: [postId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([postId])
+  @@unique([userId, postId])
 }
 
 model Bio {
@@ -56,6 +71,8 @@ model Post {
   videoUrlID String?
   userId     String
   user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  rePosts  RePost[]
 
   hashtags PostHashtag[]
 

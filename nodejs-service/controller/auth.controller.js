@@ -76,6 +76,7 @@ export const getProfile = asyncHandler(async (req, res) => {
           followers: true,
           following: true,
           posts: true,
+          rePosts: true,
         },
       },
     },
