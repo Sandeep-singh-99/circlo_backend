@@ -68,7 +68,12 @@ export const getAllPosts = asyncHandler(async (req, res) => {
           likes: true,
           comments: true,
           bookmarks: true,
+          rePosts: true,
         },
+      },
+      rePosts: {
+        where: { userId },
+        select: { id: true },
       },
       likes: {
         where: { userId },
@@ -92,9 +97,11 @@ export const getAllPosts = asyncHandler(async (req, res) => {
     likesCount: post._count.likes,
     commentsCount: post._count.comments,
     bookmarksCount: post._count.bookmarks,
+    repostsCount: post._count.rePosts,
 
     isLiked: post.likes.length > 0,
     isBookmarked: post.bookmarks.length > 0,
+    isReposted: post.rePosts.length > 0,
 
     createdAt: post.createdAt,
   }));
@@ -122,7 +129,12 @@ export const getPostById = asyncHandler(async (req, res) => {
           likes: true,
           comments: true,
           bookmarks: true,
+          rePosts: true,
         },
+      },
+      rePosts: {
+        where: { userId },
+        select: { id: true },
       },
       likes: {
         where: { userId },
@@ -150,9 +162,11 @@ export const getPostById = asyncHandler(async (req, res) => {
     likesCount: post._count.likes,
     commentsCount: post._count.comments,
     bookmarksCount: post._count.bookmarks,
+    repostsCount: post._count.rePosts,
 
     isLiked: post.likes.length > 0,
     isBookmarked: post.bookmarks.length > 0,
+    isReposted: post.rePosts.length > 0,
 
     createdAt: post.createdAt,
   };
@@ -267,7 +281,12 @@ export const getOwnPosts = asyncHandler(async (req, res) => {
           likes: true,
           comments: true,
           bookmarks: true,
+          rePosts: true,
         },
+      },
+      rePosts: {
+          where: { userId },
+          select: { id: true },
       },
       likes: {
         where: { userId },
@@ -298,9 +317,11 @@ export const getOwnPosts = asyncHandler(async (req, res) => {
     likesCount: post._count.likes,
     commentsCount: post._count.comments,
     bookmarksCount: post._count.bookmarks,
+    repostsCount: post._count.rePosts,
 
     isLiked: post.likes.length > 0,
     isBookmarked: post.bookmarks.length > 0,
+    isReposted: post.rePosts.length > 0,
 
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
