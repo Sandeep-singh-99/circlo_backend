@@ -75,3 +75,6 @@ export const getProfile = asyncHandler(async (req, res) => {
 
   res.status(200).json({ user });
 });
+
+
+export const 

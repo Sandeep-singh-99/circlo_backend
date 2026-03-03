@@ -28,8 +28,23 @@ model User {
   comments Comment[]
   likes Like[]
   bookmarks Bookmark[]
+  bio Bio?
   followers Follow[] @relation("Following")
   following Follow[] @relation("Follower")
+}
+
+model Bio {
+  id         String  @id @default(uuid())
+  userId     String  @unique
+  bio        String? 
+  location   String?
+  website    String?
+  user       User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
 }
 
 model Post {
