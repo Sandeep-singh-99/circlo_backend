@@ -337,9 +337,9 @@ export const deletePost = asyncHandler(async (req, res) => {
     where: { id },
     include: {
       hashtags: {
-        include: { hashtag: true },
-      },
-    },
+        include: { hashtag: true }
+      }
+    }
   });
 
   if (!post) {
@@ -352,32 +352,35 @@ export const deletePost = asyncHandler(async (req, res) => {
 
   // Delete image from ImageKit
   if (post.imageUrlID) {
-    await imagekit.deleteFile(post.imageUrlID);
+    try {
+      await imagekit.deleteFile(post.imageUrlID);
+    } catch (error) {
+      console.log("ImageKit delete error:", error.message);
+    }
   }
 
   await prisma.$transaction(async (tx) => {
-    // Delete hashtag associations
-    for (const { hashtag } of post.hashtags) {
-      await tx.postHashtag.delete({
-        where: {
-          postId_hashtagId: {
-            postId: id,
-            hashtagId: hashtag.id,
-          },
-        },
-      });
 
+    // decrease hashtag usage count
+    for (const { hashtag } of post.hashtags) {
       await tx.hashtag.update({
         where: { id: hashtag.id },
-        data: { usageCount: { decrement: 1 } },
+        data: {
+          usageCount: {
+            decrement: 1
+          }
+        }
       });
     }
 
-    // Delete post
+    // delete post (cascade deletes all relations)
     await tx.post.delete({
-      where: { id },
+      where: { id }
     });
+
   });
 
-  res.json({ message: "Post deleted successfully" });
+  res.json({
+    message: "Post deleted successfully"
+  });
 });
